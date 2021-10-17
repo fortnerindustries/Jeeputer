@@ -3,8 +3,11 @@
 //Design Intent: I'm using the Teensy more as a router relaying signals to and from the Nextion display rather than using the Teensy as the real brains of the computer.
 //All graphics are stored and rendered on the Nextion display, and the clock uses the built-in Nextion RTC. The Nextion Arduino library sucks, and it really doesn't add
 //very much anyway, so I'm not using it. The only libraries used are for interfacing with the atmospheric sensors.
-//The code is intentionally very verbose to make it easier for modification and comments. Also, I'm not a software engineer. :D 
-//Please feel free to condense the code down to your liking, but know that even as is, this only uses 1% of the Teensy4.0's program storage and very little RAM.
+//The code is intentionally very verbose to make it easier for modification and comments. Also, I'm not a software engineer. :D Please feel free to condense the code down
+//to your liking, but know that even as is, this only uses 1% of the Teensy4.0's program storage and very little RAM.
+
+
+
 
 
 //Libraries
@@ -235,6 +238,30 @@ void loop()
     {
       digitalWrite(srch, HIGH);
       Serial.println("Searchlights OFF");
+    }
+
+    //Aux1 toggle
+    else if (Data_From_Display == "Aux1On")
+    {
+      digitalWrite(aux1, LOW);
+      Serial.println("Aux 1 ON");
+    }
+    else if (Data_From_Display == "Aux1Of")
+    {
+      digitalWrite(aux1, HIGH);
+      Serial.println("Aux 1 OFF");
+    }
+    
+    //Aux2 toggle
+    else if (Data_From_Display == "Aux2On")
+    {
+      digitalWrite(aux2, LOW);
+      Serial.println("Aux 2 ON");
+    }
+    else if (Data_From_Display == "Aux2Of")
+    {
+      digitalWrite(aux2, HIGH);
+      Serial.println("Aux 2 OFF");
     }
 
     //Sound FX
