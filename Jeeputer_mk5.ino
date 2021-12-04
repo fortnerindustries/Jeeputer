@@ -29,14 +29,14 @@
 #define aux1 10               //Auxillary output signal pin for future expansion (low logic)
 #define aux2 9                //Auxillary output signal pin for future expansion (low logic)
 
-#define sound0 23             //Raptor sound board trigger
-#define sound1 22             //T-Rex 1 sound board trigger
-#define sound2 21             //T-Rex 2 sound board trigger
-#define sound3 20             //Theme sound board trigger
-#define sound4 19             //Auxillary sound board trigger
-#define sound5 18             //Auxillary sound board trigger
-#define sound6 17             //Auxillary sound board trigger
-#define sound7 16             //Auxillary sound board trigger
+#define sound0 23             //T00 sound board trigger
+#define sound1 22             //T01 sound board trigger
+#define sound2 21             //T02 sound board trigger
+#define sound3 20             //T03 sound board trigger
+#define sound4 14             //T04 sound board trigger
+#define sound5 15             //T05 sound board trigger
+#define sound6 17             //T06 sound board trigger
+#define sound7 16             //T07 sound board trigger
 
 int frontfogstate = 0;        //Front foglight initial state OFF
 int defroststate = 0;         //Rear defrost initial state OFF
@@ -50,7 +50,7 @@ int altft = 555;              //Dummy altitude for debugging Nextion serial comm
 unsigned long PrMl1 = 0;      //time variable
 unsigned long PrMl2 = 0;      //time variable
 const long SnsInt = 10000;    //Temperature and altitude polling interval (default is 10 seconds)
-const long IndInt = 3000;     //Vehicle indicator polling for front foglights, 4x4, defrost, and dimmer (default is 3 seconds)
+const long IndInt = 3000;     //Vehicle indicator polling for front foglights, 4x4, defrost, and dimmer (default is 3 second)
 
 //Altimeter and External Temperature Probe Setup
 Adafruit_MPL3115A2 baro;
@@ -111,15 +111,16 @@ void setup()
 
   //Serial communication startup
   Serial.begin(9600);                                  //PC serial monitoring over USB for debugging
+  Serial.println("Teensy4.0 has booted!");
   sensors.begin();                                     //Initialize OneWire sensors
   Wire.begin();                                        //Initialize the three I2C buses on the Teensy4.0
   Serial1.begin(9600);                                 //Serial communication with Nextion display
-  if (! baro.begin(&Wire2)) {                          //Initialize altimeter on I2C Bus 2 and check for comms
+  if (! baro.begin(&Wire)) {                          //Initialize altimeter on I2C Bus 0 and check for comms
     Serial.println("Altimer not found on I2C Bus 2 (Pins 24/25 on Teensy4.0).");
     while (1);
   }
   Serial.println("All serial and I2C communications ready!");
-  float StdP = 30.16;                                  //Set the average barometric pressure in inHg for your area.
+  float StdP = 30.35;                                  //Set the average barometric pressure in inHg for your area.
   float StdP2 = StdP * 33.864;                         //Convert inHg to hPa for altimeter calibration
   baro.setSeaPressure(StdP2);                          //Send pressure to altimeter chip
   Serial.println("Baseline altimeter atmospheric pressure set to " + String(StdP, 2) + " inHg.");
@@ -136,6 +137,10 @@ void loop()
     tempavg = (tempmonGetTemp() + baro.getTemperature()) / 2;      //Average inside temperature taken from Teensy SoC and altimeter in Celcius
     tempin = (9 / 5) * tempavg + 32;                               //Inside temperature reading as taken from the Teensy CPU temperature probe
     tempout = sensors.toFahrenheit(sensors.getTempCByIndex(0));    //Outside temperature reading as taken from the DS18B20 OneWire probe
+    if (tempout <= -40) {
+      Serial.println("OneWire temp sensor error!");
+      tempout = 0;
+    }
     Serial1.print("alt.val=" + String(altft));                     //Send the altimiter reading to the Nextion display.
     Serial1.write("\xFF\xFF\xFF");
     Serial1.print("tin.val=" + String(tempin));                    //Send the inside temperature reading to the Nextion display.
@@ -215,6 +220,16 @@ void loop()
       Data_From_Display += char(Serial1.read());
     }
 
+    //Initial Info Screen Refresh
+    if (Data_From_Display == "UpDt")
+    {
+      Serial1.print("alt.val=" + String(altft));                     //Send the altimiter reading to the Nextion display.
+      Serial1.write("\xFF\xFF\xFF");
+      Serial1.print("tin.val=" + String(tempin));                    //Send the inside temperature reading to the Nextion display.
+      Serial1.write("\xFF\xFF\xFF");
+      Serial1.print("tout.val=" + String(tempout));                  //Send the outside temperature reading to the Nextion display.
+      Serial1.write("\xFF\xFF\xFF");
+    }
 
     //Rear foglight toggle
     if (Data_From_Display == "rfogOn")
@@ -251,7 +266,7 @@ void loop()
       digitalWrite(aux1, HIGH);
       Serial.println("Aux 1 OFF");
     }
-    
+
     //Aux2 toggle
     else if (Data_From_Display == "Aux2On")
     {
@@ -265,35 +280,62 @@ void loop()
     }
 
     //Sound FX
-    else if (Data_From_Display == "RpTr")
+    else if (Data_From_Display == "T00")
     {
-      Serial.println("Raptor sound effect");
+      Serial.println("T00");
       digitalWrite(sound0, LOW);
       delay(500);
       digitalWrite(sound0, HIGH);
     }
-    else if (Data_From_Display == "Trx1")
+    else if (Data_From_Display == "T01")
     {
-      Serial.println("TRex1 sound effect");
+      Serial.println("T01");
       digitalWrite(sound1, LOW);
       delay(500);
       digitalWrite(sound1, HIGH);
     }
-    else if (Data_From_Display == "Trx2")
+    else if (Data_From_Display == "T02")
     {
-      Serial.println("TRex2 sound effect");
+      Serial.println("T02");
       digitalWrite(sound2, LOW);
       delay(500);
       digitalWrite(sound2, HIGH);
     }
-    else if (Data_From_Display == "ThMe")
+    else if (Data_From_Display == "T03")
     {
-      Serial.println("Theme sound effect");
+      Serial.println("T03");
       digitalWrite(sound3, LOW);
       delay(500);
       digitalWrite(sound3, HIGH);
     }
-
+    else if (Data_From_Display == "T04")
+    {
+      Serial.println("T04");
+      digitalWrite(sound4, LOW);
+      delay(500);
+      digitalWrite(sound4, HIGH);
+    }
+    else if (Data_From_Display == "T05")
+    {
+      Serial.println("T05");
+      digitalWrite(sound5, LOW);
+      delay(500);
+      digitalWrite(sound5, HIGH);
+    }
+    else if (Data_From_Display == "T06")
+    {
+      Serial.println("T06");
+      digitalWrite(sound6, LOW);
+      delay(500);
+      digitalWrite(sound6, HIGH);
+    }
+    else if (Data_From_Display == "T07")
+    {
+      Serial.println("T07");
+      digitalWrite(sound7, LOW);
+      delay(500);
+      digitalWrite(sound7, HIGH);
+    }
     else
     {
       Serial1.write("\xFF\xFF\xFF");
